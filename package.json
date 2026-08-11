@@ -2,7 +2,12 @@
   "name": "@fastify-agent-console/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "type": "module",
+  "scripts": {
+    "health": "curl -s http://localhost:3000/health || echo 'Server not responding'",
+    "db:ping": "node --env-file=.env packages/db/src/lib/ping.ts",
+    "redis:ping": "node --env-file=.env packages/db/src/lib/redis-ping.ts"
+  },
   "private": true,
   "devDependencies": {
     "@eslint/js": "^9.8.0",
@@ -31,6 +36,7 @@
     "drizzle-orm": "^0.45.2",
     "fastify": "~5.2.1",
     "fastify-plugin": "~5.0.1",
+    "ioredis": "^6.0.0",
     "pg": "^8.23.0"
   }
 }
