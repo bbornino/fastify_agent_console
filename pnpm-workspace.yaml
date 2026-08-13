@@ -4,3 +4,4 @@ allowBuilds:
   nx: true
   unrs-resolver: true
   '@swc/core': false
+  bcrypt: true
