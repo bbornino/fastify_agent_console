@@ -1,18 +1,18 @@
 // Uncomment this line to use CSS modules
 // import styles from './app.module.css';
-import NxWelcome from './nx-welcome';
-import { Button } from '@/components/ui/button';
+import { Routes, Route, Navigate } from 'react-router'
+import { LoginPage } from '../pages/login-page'
+import { RegisterPage } from '../pages/register-page'
+import { AuthCallbackPage} from '../pages/auth-callback-page'
 
 export function App() {
   return (
-    <div>
-      <div className='p-4 flex gap-2'>
-        <Button>Default</Button>
-        <Button variant="destructive">Destructive</Button>
-        <Button variant="outline">Outline</Button>
-      </div>
-      <NxWelcome title="web" />
-    </div>
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/register" element={<RegisterPage /> } />
+      <Route path='/auth/callback' element={<AuthCallbackPage />} />
+      <Route path="/" element={<Navigate to="/login" replace />} />
+    </Routes>
   );
 }
 
