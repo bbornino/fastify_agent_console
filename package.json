@@ -62,8 +62,10 @@
   },
   "dependencies": {
     "@fastify/autoload": "~6.0.3",
+    "@fastify/cors": "^11.3.0",
     "@fastify/jwt": "^10.2.1",
     "@fastify/sensible": "~6.0.2",
+    "@hookform/resolvers": "^5.8.0",
     "axios": "^1.19.0",
     "bcrypt": "^6.0.0",
     "class-variance-authority": "^0.7.1",
@@ -77,8 +79,10 @@
     "radix-ui": "^1.6.7",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-hook-form": "^7.85.0",
     "react-router": "^8.3.0",
     "tailwind-merge": "^3.6.0",
+    "zod": "^4.4.3",
     "zustand": "^5.0.14"
   }
 }
