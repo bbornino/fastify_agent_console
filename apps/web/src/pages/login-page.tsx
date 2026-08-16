@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { loginSchema, type LoginFormValues } from "@/lib/schemas/auth-schema"
 import { apiClient } from "@/lib/api-client"
 import { useAuthStore } from "@/stores/auth-store"
+import { GoogleAuthButton } from "@/components/google-auth-button"
 
 export function LoginPage() {
     const navigate = useNavigate()
@@ -34,33 +35,38 @@ export function LoginPage() {
         }
     }
 
+
     return (
         <div className="flex min-h-screen items-center justify-center">
-            <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-sm space-y-4 p-6">
-                <h1 className="text-2xl font-bold">Log in</h1>
+            <div className="w-full max-w-sm space-y-4 p-6">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                    <h1 className="text-2xl font-bold">Log in</h1>
 
-                <div className="space-y-1">
-                    <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" {...register('email')} />
-                    {errors.email && (
-                        <p className="text-sm text-destructive">{errors.email.message}</p>
-                    )}
-                </div>
+                    <div className="space-y-1">
+                        <Label htmlFor="email">Email</Label>
+                        <Input id="email" type="email" {...register('email')} />
+                        {errors.email && (
+                            <p className="text-sm text-destructive">{errors.email.message}</p>
+                        )}
+                    </div>
 
-                <div className="space-y-1">
-                    <Label htmlFor="password">Password</Label>
-                    <Input id="password" type="password" {...register('password')} />
-                    {errors.password && (
-                        <p className="text-sm text-destructive">{errors.password.message}</p>
-                    )}
-                </div>
+                    <div className="space-y-1">
+                        <Label htmlFor="password">Password</Label>
+                        <Input id="password" type="password" {...register('password')} />
+                        {errors.password && (
+                            <p className="text-sm text-destructive">{errors.password.message}</p>
+                        )}
+                    </div>
 
-                {serverError && <p className="text-sm text-destructive">{serverError}</p>}
+                    {serverError && <p className="text-sm text-destructive">{serverError}</p>}
 
-                <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? 'Logging in...' : ' Log in'}
-                </Button>
-            </form>
+                    <Button type="submit" className="w-full" disabled={isSubmitting}>
+                        {isSubmitting ? 'Logging in...' : 'Log in'}
+                    </Button>
+                </form>
+
+                <GoogleAuthButton mode="signin" />
+            </div>
         </div>
     )
 }
