@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt'
 import crypto from 'crypto'
 import { eq } from 'drizzle-orm'
 import { db, users, refreshTokens } from '@fastify-agent-console/db'
+import { REFRESH_TOKEN_EXPIRY_MS } from "../../constants";
 
 export default async function (fastify: FastifyInstance) {
     fastify.post<{
@@ -30,7 +31,7 @@ export default async function (fastify: FastifyInstance) {
         await db.insert(refreshTokens).values({
             userId: user.id,
             tokenHash,
-            expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+            expiresAt: new Date(Date.now() + REFRESH_TOKEN_EXPIRY_MS)
         })
 
         await db
@@ -38,10 +39,17 @@ export default async function (fastify: FastifyInstance) {
                 .set({ lastLoginAt: new Date() })
                 .where(eq(users.id, user.id))
 
+        reply.setCookie('refreshToken', rawRefreshToken, {
+            httpOnly: true,
+            secure: false,
+            sameSite: 'lax',
+            path: '/auth',
+            maxAge: REFRESH_TOKEN_EXPIRY_MS / 1000,     // seconds not ms
+        })
         reply.send({
             user: { id: user.id, email: user.email, name: user.name, role: user.role},
             accessToken,
-            refreshToken: rawRefreshToken,
+            // refreshToken: rawRefreshToken,
         })
     })
 }

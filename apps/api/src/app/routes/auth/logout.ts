@@ -4,10 +4,8 @@ import { eq, and, isNull } from 'drizzle-orm'
 import { db, refreshTokens } from '@fastify-agent-console/db'
 
 export default async function ( fastify: FastifyInstance) {
-    fastify.post<{
-        Body: {refreshToken: string }
-    }>('/logout', async (request, reply) => {
-        const { refreshToken } = request.body
+    fastify.post('/logout', async (request, reply) => {
+        const refreshToken = request.cookies.refreshToken
         if (!refreshToken) {
             return reply.code(400).send({ error: 'Refresh token rquired'})
         }
@@ -24,6 +22,7 @@ export default async function ( fastify: FastifyInstance) {
                     )
                 )
 
+        reply.clearCookie('refreshToken', {path: '/auth'})
         reply.send({message: 'Logged out successfully'})
     })
 }

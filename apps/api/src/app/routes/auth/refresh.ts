@@ -2,14 +2,13 @@ import type { FastifyInstance } from "fastify"
 import crypto from 'crypto'
 import { eq, and, isNull, gt } from 'drizzle-orm'
 import { db, users, refreshTokens } from '@fastify-agent-console/db'
+import { REFRESH_TOKEN_EXPIRY_MS } from "../../constants"
 
 export default async function ( fastify: FastifyInstance) {
-    fastify.post<{
-        Body: { refreshToken: string }
-    }>('/refresh', async (request, reply) => {
-        const { refreshToken } = request.body
+    fastify.post('/refresh', async (request, reply) => {
+        const refreshToken = request.cookies.refreshToken
         if (!refreshToken) {
-            return reply.code(400).send({ error: 'Refresh token required'})
+            return reply.code(401).send({ error: 'Invalid or expired refresh token'})
         }
 
         const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex')
@@ -27,6 +26,7 @@ export default async function ( fastify: FastifyInstance) {
                 .limit(1)
 
         if (!tokenRow) {
+            reply.clearCookie('refreshToken', {path: '/auth'})
             return reply.code(401).send({ error: 'Invalid or expired refresh token'})
         }
 
@@ -37,6 +37,7 @@ export default async function ( fastify: FastifyInstance) {
                 .limit(1)
 
         if (!user || !user.isActive) {
+            reply.clearCookie('refreshToken', {path: '/auth'})
             return reply.code(401).send({ error: 'Invalid or expired refresh token' })
         }
 
@@ -52,14 +53,19 @@ export default async function ( fastify: FastifyInstance) {
         await db.insert(refreshTokens).values({
             userId: user.id,
             tokenHash: newTokenHash,
-            expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+            expiresAt: new Date(Date.now() + REFRESH_TOKEN_EXPIRY_MS)
         })
 
         const accessToken = fastify.jwt.sign({ userId: user.id, role: user.role})
 
-        reply.send({
-            accessToken,
-            refreshToken: newRawRefreshToken,
-        })
+        reply.setCookie('refreshToken', newRawRefreshToken, {
+                    httpOnly: true,
+                    secure: false,
+                    sameSite: 'lax',
+                    path: '/auth',
+                    maxAge: REFRESH_TOKEN_EXPIRY_MS / 1000,     // seconds not ms
+                })
+
+        reply.send({ accessToken })
     })
 }

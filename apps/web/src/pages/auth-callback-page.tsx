@@ -7,28 +7,27 @@ export function AuthCallbackPage() {
     const navigate = useNavigate()
     const [searchParams] = useSearchParams()
     const setAuth = useAuthStore((state) => state.setAuth)
-    const setTokens = useAuthStore((state) => state.setTokens)
 
     useEffect(() => {
         const accessToken = searchParams.get('accessToken')
-        const refreshToken = searchParams.get('refreshToken')
 
-        if (!accessToken || !refreshToken) {
+        if (!accessToken) {
             navigate('/login', {replace: true})
             return
         }
 
-        setTokens(accessToken, refreshToken)
-
         apiClient
-            .get('/me')
+            .get('/me', {
+                headers: {Authorization: `Bearer ${accessToken}`}
+            })
             .then((res) => {
-                setAuth(res.data, accessToken, refreshToken)
+                setAuth(res.data, accessToken)
                 navigate('/', { replace: true})
             })
             .catch(() => {
                 navigate('/login', {replace: true})
             })
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional: process URL token exactly once on mount
     }, [])
 
     return (

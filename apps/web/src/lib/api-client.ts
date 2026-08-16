@@ -1,8 +1,10 @@
 import axios from 'axios'
 import { useAuthStore } from '../stores/auth-store'
+import { API_BASE_URL } from './constants'
 
 export const apiClient = axios.create({
-    baseURL: 'http://localhost:3000',
+    baseURL: API_BASE_URL,
+    withCredentials: true,
 })
 
 // Attach the access token to every outgoing request
@@ -40,13 +42,13 @@ apiClient.interceptors.response.use(
         isRefreshing = true
 
         try {
-            const refreshToken = useAuthStore.getState().refreshToken
-            const response = await axios.post('http://localhost: 3000/auth/refresh', {
-                refreshToken,
-            })
+            const response = await axios.post(`${API_BASE_URL}/auth/refresh`, 
+                {},
+                { withCredentials: true}
+            )
 
-            const { accessToken, refreshToken: newRefreshToken } = response.data
-            useAuthStore.getState().setTokens(accessToken, newRefreshToken)
+            const { accessToken} = response.data
+            useAuthStore.getState().setAccessToken(accessToken)
             refreshQueue.forEach((cb) => cb(accessToken))
             refreshQueue = []
 

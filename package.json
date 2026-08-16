@@ -62,6 +62,7 @@
   },
   "dependencies": {
     "@fastify/autoload": "~6.0.3",
+    "@fastify/cookie": "^11.1.2",
     "@fastify/cors": "^11.3.0",
     "@fastify/jwt": "^10.2.1",
     "@fastify/sensible": "~6.0.2",

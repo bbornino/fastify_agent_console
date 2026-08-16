@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button'
+import { API_BASE_URL } from '@/lib/constants'
 
 interface GoogleAuthButtonProps {
     mode: 'signin' | 'signup'
@@ -21,7 +22,7 @@ export function GoogleAuthButton({ mode }: GoogleAuthButtonProps) {
                 variant="outline"
                 className="w-full"
                 onClick={() => {
-                window.location.href = 'http://localhost:3000/auth/google';
+                window.location.href = `${API_BASE_URL}/auth/google`
                 }}
             >
                 {mode === 'signin' ? 'Sign in with Google' : 'Sign up with Google'}

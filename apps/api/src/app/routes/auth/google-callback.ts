@@ -3,6 +3,7 @@ import crypto from 'crypto'
 import { eq, or } from 'drizzle-orm'
 import { OAuth2Client } from 'google-auth-library'
 import { db, users, refreshTokens } from '@fastify-agent-console/db'
+import { FRONTEND_URL, REFRESH_TOKEN_EXPIRY_MS } from "../../constants"
 
 const googleClient =  new OAuth2Client(
     process.env['GOOGLE_CLIENT_ID'],
@@ -68,7 +69,7 @@ export default async function (fastify: FastifyInstance) {
         await db.insert(refreshTokens).values({
             userId: user.id,
             tokenHash,
-            expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+            expiresAt: new Date(Date.now() + REFRESH_TOKEN_EXPIRY_MS),
         })
 
         await db
@@ -76,9 +77,13 @@ export default async function (fastify: FastifyInstance) {
                 .set({ lastLoginAt: new Date()})
                 .where(eq(users.id, user.id))
 
-        // Redirect back to the frontend with tokens as query params
-        reply.redirect(
-            `http://localhost:4200/auth/callback?accessToken=${accessToken}&refreshToken=${rawRefreshToken}`
-        )
+        reply.setCookie('refreshToken', rawRefreshToken, {
+            httpOnly: true,
+            secure: false,
+            sameSite: 'lax',
+            path: '/auth',
+            maxAge: REFRESH_TOKEN_EXPIRY_MS / 1000,
+        })
+        reply.redirect(`${FRONTEND_URL}/auth/callback?accessToken=${accessToken}`)
     })
 }

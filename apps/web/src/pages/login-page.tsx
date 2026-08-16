@@ -27,8 +27,8 @@ export function LoginPage() {
         setServerError(null)
         try {
             const response = await apiClient.post('/auth/login', data)
-            const { user, accessToken, refreshToken } = response.data
-            setAuth(user, accessToken, refreshToken)
+            const { user, accessToken } = response.data
+            setAuth(user, accessToken)
             navigate('/')
         } catch (err) {
             setServerError('Invalid email or password')
