@@ -12,15 +12,18 @@ interface AuthState {
     user: User | null;
     accessToken: string | null;
     isAuthenticated: boolean;
+    isBootstrapping: boolean;
     setAuth: (user: User, accessToken: string) => void;
     setAccessToken: (accessToken: string) => void;
     logout: () => void;
+    finishBootstrapping: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
     user: null,
     accessToken: null,
     isAuthenticated: false,
+    isBootstrapping: true,
 
     setAuth: (user, accessToken) =>
         set({ user, accessToken, isAuthenticated: true }),
@@ -30,4 +33,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
     logout: () =>
         set({user:null, accessToken: null, isAuthenticated: false}),
+
+    finishBootstrapping: () =>
+        set({isBootstrapping: false})
 }))

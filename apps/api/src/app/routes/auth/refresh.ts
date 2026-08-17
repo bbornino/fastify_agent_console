@@ -2,7 +2,7 @@ import type { FastifyInstance } from "fastify"
 import crypto from 'crypto'
 import { eq, and, isNull, gt } from 'drizzle-orm'
 import { db, users, refreshTokens } from '@fastify-agent-console/db'
-import { REFRESH_TOKEN_EXPIRY_MS } from "../../constants"
+import { REFRESH_TOKEN_EXPIRY_MS, REFRESH_COOKIE_OPTIONS } from "../../constants"
 
 export default async function ( fastify: FastifyInstance) {
     fastify.post('/refresh', async (request, reply) => {
@@ -37,7 +37,7 @@ export default async function ( fastify: FastifyInstance) {
                 .limit(1)
 
         if (!user || !user.isActive) {
-            reply.clearCookie('refreshToken', {path: '/auth'})
+            reply.clearCookie('refreshToken', {path: REFRESH_COOKIE_OPTIONS.path})
             return reply.code(401).send({ error: 'Invalid or expired refresh token' })
         }
 
@@ -58,13 +58,7 @@ export default async function ( fastify: FastifyInstance) {
 
         const accessToken = fastify.jwt.sign({ userId: user.id, role: user.role})
 
-        reply.setCookie('refreshToken', newRawRefreshToken, {
-                    httpOnly: true,
-                    secure: false,
-                    sameSite: 'lax',
-                    path: '/auth',
-                    maxAge: REFRESH_TOKEN_EXPIRY_MS / 1000,     // seconds not ms
-                })
+        reply.setCookie('refreshToken', newRawRefreshToken, REFRESH_COOKIE_OPTIONS)
 
         reply.send({ accessToken })
     })

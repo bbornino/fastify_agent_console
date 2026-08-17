@@ -3,7 +3,7 @@ import crypto from 'crypto'
 import { eq, or } from 'drizzle-orm'
 import { OAuth2Client } from 'google-auth-library'
 import { db, users, refreshTokens } from '@fastify-agent-console/db'
-import { FRONTEND_URL, REFRESH_TOKEN_EXPIRY_MS } from "../../constants"
+import { FRONTEND_URL, REFRESH_TOKEN_EXPIRY_MS, REFRESH_COOKIE_OPTIONS } from "../../constants"
 
 const googleClient =  new OAuth2Client(
     process.env['GOOGLE_CLIENT_ID'],
@@ -77,13 +77,7 @@ export default async function (fastify: FastifyInstance) {
                 .set({ lastLoginAt: new Date()})
                 .where(eq(users.id, user.id))
 
-        reply.setCookie('refreshToken', rawRefreshToken, {
-            httpOnly: true,
-            secure: false,
-            sameSite: 'lax',
-            path: '/auth',
-            maxAge: REFRESH_TOKEN_EXPIRY_MS / 1000,
-        })
+        reply.setCookie('refreshToken', rawRefreshToken, REFRESH_COOKIE_OPTIONS)
         reply.redirect(`${FRONTEND_URL}/auth/callback?accessToken=${accessToken}`)
     })
 }

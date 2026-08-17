@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify"
 import crypto from 'crypto'
 import { eq, and, isNull } from 'drizzle-orm'
 import { db, refreshTokens } from '@fastify-agent-console/db'
+import { REFRESH_COOKIE_OPTIONS } from "../../constants"
 
 export default async function ( fastify: FastifyInstance) {
     fastify.post('/logout', async (request, reply) => {
@@ -22,7 +23,7 @@ export default async function ( fastify: FastifyInstance) {
                     )
                 )
 
-        reply.clearCookie('refreshToken', {path: '/auth'})
+        reply.clearCookie('refreshToken', {path: REFRESH_COOKIE_OPTIONS.path})
         reply.send({message: 'Logged out successfully'})
     })
 }

@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router'
+import { AuthBootstrap } from './components/auth-bootstrap'
 import App from './app/app';
 
 const root = ReactDOM.createRoot(
@@ -10,7 +11,9 @@ const root = ReactDOM.createRoot(
 root.render(
   <StrictMode>
     <BrowserRouter>
-      <App />
+      <AuthBootstrap>
+        <App />
+      </AuthBootstrap>
     </BrowserRouter>
   </StrictMode>,
 );
