@@ -19,6 +19,20 @@ services:
     volumes:
       - agent_console_redisdata:/data
 
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: agent_console
+      MINIO_ROOT_PASSWORD: agent_console_dev
+    ports:
+      - "9002:9000"
+      - "9003:9001"
+    volumes:
+      - agent_console_miniodata:/data
+    command: server /data --console-address ":9001"
+
 volumes:
   agent_console_pgdata:
   agent_console_redisdata:
+  agent_console_miniodata:
