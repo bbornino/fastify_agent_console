@@ -24,3 +24,42 @@ export const refreshTokens = pgTable('refresh_tokens', {
     revokedAt: timestamp('revoked_at', {withTimezone: true}),
     createdAt: timestamp('created_at', {withTimezone: true}).notNull().defaultNow(),
 })
+
+export const ticketStatusEnum = pgEnum('ticket_status', [
+    'new', 'open', 'pending', 'resolved', 'closed'
+])
+
+export const ticketPriorityEnum = pgEnum('ticket_priority', [
+    'low', 'medium', 'high', 'urgent'
+])
+
+export const tickets = pgTable('tickets', {
+    id: serial('id').primaryKey(),
+    subject: varchar('subject', { length: 255}).notNull(),
+    description: text('description').notNull(),
+    status: ticketStatusEnum('status').notNull().default('new'),
+    priority: ticketPriorityEnum('priority').notNull().default('medium'),
+    customerEmail: varchar('customer_email', { length: 255}).notNull(),
+    customerName: varchar('customer_name', { length: 255}).notNull(),
+    assignedAgentId: integer('assigned_agent_id').references(() => users.id),
+    category: varchar('category', { length: 100}),
+    isEscalated: boolean('is_escalated').notNull().default(false),
+    firstResponseAt: timestamp('first_response_at', { withTimezone: true}),
+    resolvedAt: timestamp('resolved_at', { withTimezone: true }),
+    dueBy: timestamp('due_by', { withTimezone: true }),
+    satisfactionRating: integer('satisfaction_rating'),
+    internalNotes: text('internal_notes'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull(),
+})
+
+export const attachments = pgTable('attachments', {
+    id: serial('id').primaryKey(),
+    ticketId: integer('ticket_id').notNull().references(() => tickets.id),
+    uploadedByUserId: integer('uploaded_by_user_id').notNull().references(() => users.id),
+    fileName: varchar('file_name', { length: 255 }).notNull(),
+    fileKey: varchar('file_key', { length: 500 }).notNull().unique(),
+    contentType: varchar('content_type', { length: 100 }).notNull(),
+    fileSizeBytes: integer('file_size_bytes').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+})
