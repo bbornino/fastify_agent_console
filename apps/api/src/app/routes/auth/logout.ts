@@ -7,13 +7,10 @@ import { REFRESH_COOKIE_OPTIONS } from "../../constants"
 export default async function ( fastify: FastifyInstance) {
     fastify.post('/logout', async (request, reply) => {
         const refreshToken = request.cookies.refreshToken
-        if (!refreshToken) {
-            return reply.code(400).send({ error: 'Refresh token rquired'})
-        }
+        if (refreshToken) {
+            const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex')
 
-        const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex')
-
-        await db
+            await db
                 .update(refreshTokens)
                 .set({revokedAt: new Date() })
                 .where(
@@ -22,6 +19,7 @@ export default async function ( fastify: FastifyInstance) {
                         isNull(refreshTokens.revokedAt)
                     )
                 )
+        }
 
         reply.clearCookie('refreshToken', {path: REFRESH_COOKIE_OPTIONS.path})
         reply.send({message: 'Logged out successfully'})
