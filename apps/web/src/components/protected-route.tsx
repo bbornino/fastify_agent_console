@@ -1,5 +1,6 @@
 import { Navigate, Outlet } from 'react-router'
 import { useAuthStore } from '@/stores/auth-store'
+import { NavBar } from '@/components/nav-bar'
 
 export function ProtectedRoute() {
     const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
@@ -8,5 +9,10 @@ export function ProtectedRoute() {
         return <Navigate to="/login" replace />
     }
 
-    return <Outlet />
+    return (
+        <>
+            <NavBar />
+            <Outlet />
+        </>
+    ) 
 }

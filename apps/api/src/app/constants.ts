@@ -6,6 +6,6 @@ export const REFRESH_COOKIE_OPTIONS = {
   httpOnly: true,
   secure: false, // true in production (requires HTTPS)
   sameSite: 'lax' as const,
-  path: '/auth',
+  path: '/api/auth',
   maxAge: REFRESH_TOKEN_EXPIRY_MS / 1000,
 }

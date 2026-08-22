@@ -26,7 +26,7 @@ export default async function ( fastify: FastifyInstance) {
                 .limit(1)
 
         if (!tokenRow) {
-            reply.clearCookie('refreshToken', {path: '/auth'})
+            reply.clearCookie('refreshToken', {path: REFRESH_COOKIE_OPTIONS.path})
             return reply.code(401).send({ error: 'Invalid or expired refresh token'})
         }
 

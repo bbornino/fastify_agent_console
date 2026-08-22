@@ -6,6 +6,7 @@ import { RegisterPage } from '../pages/register-page'
 import { AuthCallbackPage} from '../pages/auth-callback-page'
 import { HomePage } from '../pages/home-page'
 import { ProtectedRoute } from '../components/protected-route'
+import { TicketsPage } from '@/pages/tickets-page'
 
 export function App() {
   return (
@@ -15,6 +16,7 @@ export function App() {
       <Route path='/auth/callback' element={<AuthCallbackPage />} />
       <Route element={<ProtectedRoute />}>
         <Route path="/" element={<HomePage />} />
+        <Route path="/tickets" element={<TicketsPage />} />
       </Route>
     </Routes>
   );

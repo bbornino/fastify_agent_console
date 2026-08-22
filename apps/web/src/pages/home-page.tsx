@@ -30,7 +30,7 @@ export function HomePage() {
             <h1 className="text-2xl font-bold">Welcome, {me?.name}</h1>
             <p className="text-sm text-muted-foreground">{me?.email}</p>
             <p className="text-sm">Role: {me?.role}</p>
-            <Button onClick={logout}>Log out</Button>
+            {/* <Button onClick={logout}>Log out</Button> */}
         </div>
     )
 }
