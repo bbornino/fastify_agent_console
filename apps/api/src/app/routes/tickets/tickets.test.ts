@@ -1,12 +1,13 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import Fastify from 'fastify';
-import { eq } from 'drizzle-orm';
+import { eq, like } from 'drizzle-orm';
 import { db, users, refreshTokens, tickets } from '@fastify-agent-console/db';
 import jwtPlugin from '../../plugins/jwt';
 import cookiePlugin from '../../plugins/cookie';
 import registerRoute from '../auth/register';
 import createRoute from './create';
 import listRoute from './list';
+import updateRoute from './update';
 
 async function buildApp() {
   const app = Fastify();
@@ -15,6 +16,7 @@ async function buildApp() {
   await app.register(registerRoute, { prefix: '/auth' });
   await app.register(createRoute, { prefix: '/tickets' });
   await app.register(listRoute, { prefix: '/tickets' });
+  await app.register(updateRoute, { prefix: '/tickets' });
   await app.ready();
   return app;
 }
@@ -25,7 +27,7 @@ const TEST_SUBJECT = 'Vitest test ticket — please ignore';
 
 async function cleanupTestData() {
   const [user] = await db.select().from(users).where(eq(users.email, TEST_EMAIL)).limit(1);
-  await db.delete(tickets).where(eq(tickets.subject, TEST_SUBJECT));
+  await db.delete(tickets).where(like(tickets.subject, TEST_SUBJECT));
   if (user) {
     await db.delete(refreshTokens).where(eq(refreshTokens.userId, user.id));
     await db.delete(users).where(eq(users.id, user.id));
@@ -118,4 +120,52 @@ describe('Tickets', () => {
       await app.close();
     });
   });
+
+  describe('PATCH /tickets/:id', () => {
+  it('updates ticket status and sets resolvedAt', async () => {
+    const app = await buildApp();
+
+    const createResponse = await app.inject({
+      method: 'POST',
+      url: '/tickets',
+      headers: { authorization: `Bearer ${accessToken}` },
+      payload: {
+        subject: `${TEST_SUBJECT} - patch test`,
+        description: 'Test description',
+        customerEmail: 'customer@example.com',
+        customerName: 'Test Customer',
+      },
+    });
+    const { id } = JSON.parse(createResponse.body);
+
+    const patchResponse = await app.inject({
+      method: 'PATCH',
+      url: `/tickets/${id}`,
+      headers: { authorization: `Bearer ${accessToken}` },
+      payload: { status: 'resolved' },
+    });
+
+    expect(patchResponse.statusCode).toBe(200);
+    const body = JSON.parse(patchResponse.body);
+    expect(body.status).toBe('resolved');
+    expect(body.resolvedAt).not.toBeNull();
+
+    await app.close();
+  });
+
+  it('returns 404 for a nonexistent ticket', async () => {
+    const app = await buildApp();
+
+    const response = await app.inject({
+      method: 'PATCH',
+      url: '/tickets/999999',
+      headers: { authorization: `Bearer ${accessToken}` },
+      payload: { status: 'resolved' },
+    });
+
+    expect(response.statusCode).toBe(404);
+
+    await app.close();
+  });
+});
 });
