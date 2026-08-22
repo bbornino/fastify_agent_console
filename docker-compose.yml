@@ -31,6 +31,13 @@ services:
     volumes:
       - agent_console_miniodata:/data
     command: server /data --console-address ":9001"
+  
+  mailhog:
+    image: mailhog/mailhog:latest
+    restart: unless-stopped
+    ports:
+      - "1026:1025"
+      - "8026:8025"
 
 volumes:
   agent_console_pgdata:

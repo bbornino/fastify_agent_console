@@ -7,7 +7,8 @@
     "health": "curl -s http://localhost:3000/health || echo 'Server not responding'",
     "db:ping": "node --env-file=.env packages/db/src/lib/ping.ts",
     "redis:ping": "node --env-file=.env packages/db/src/lib/redis-ping.ts",
-    "minio:ping": "node --env-file=.env packages/db/src/lib/minio-ping.ts"
+    "minio:ping": "node --env-file=.env packages/db/src/lib/minio-ping.ts",
+    "mail:ping": "node --env-file=.env packages/db/src/lib/mail-ping.ts"
   },
   "private": true,
   "devDependencies": {
@@ -33,6 +34,7 @@
     "@testing-library/react": "16.3.0",
     "@types/bcrypt": "^6.0.0",
     "@types/node": "^22.0.0",
+    "@types/nodemailer": "^8.0.1",
     "@types/pg": "^8.21.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
@@ -81,6 +83,7 @@
     "google-auth-library": "^11.0.2",
     "ioredis": "^6.0.0",
     "minio": "^8.0.7",
+    "nodemailer": "^9.0.5",
     "pg": "^8.23.0",
     "radix-ui": "^1.6.7",
     "react": "^19.0.0",
