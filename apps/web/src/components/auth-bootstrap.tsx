@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from "react"
+import { useEffect, useRef, type ReactNode } from "react"
 import axios from "axios"
 import { apiClient } from "@/lib/api-client"
 import { useAuthStore } from "@/stores/auth-store"
@@ -8,8 +8,12 @@ export function AuthBootstrap({ children }: { children: ReactNode}) {
     const isBootstrapping = useAuthStore((state) => state.isBootstrapping)
     const setAuth = useAuthStore((state) => state.setAuth)
     const finishBootstraping = useAuthStore((state) => state.finishBootstrapping)
+    const hasRun = useRef(false)
 
     useEffect(() => {
+        if (hasRun.current) return
+        hasRun.current = true
+        
         axios
             .post(`${API_BASE_URL}/auth/refresh`, {}, { withCredentials: true})
             .then((res) => {
