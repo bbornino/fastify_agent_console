@@ -48,8 +48,19 @@ services:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
     extra_hosts:
       - "host.docker.internal:host-gateway"
+  grafana:
+    image: grafana/grafana:latest
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - agent_console_grafanadata:/var/lib/grafana
 
 volumes:
   agent_console_pgdata:
   agent_console_redisdata:
   agent_console_miniodata:
+  agent_console_grafanadata:
