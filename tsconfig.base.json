@@ -15,7 +15,8 @@
     "skipDefaultLibCheck": true,
     "strict": false,
     "paths": {
-      "@fastify-agent-console/db": ["./packages/db/src/index.ts"]
+      "@fastify-agent-console/db": ["./packages/db/src/index.ts"],
+      "@fastify-agent-console/mail": ["./packages/mail/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

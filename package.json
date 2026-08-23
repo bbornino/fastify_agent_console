@@ -8,7 +8,7 @@
     "db:ping": "tsx --env-file=.env packages/db/src/lib/ping.ts",
     "redis:ping": "tsx --env-file=.env packages/db/src/lib/redis-ping.ts",
     "minio:ping": "tsx --env-file=.env packages/db/src/lib/minio-ping.ts",
-    "mail:ping": "tsx --env-file=.env packages/db/src/lib/mail-ping.ts",
+    "mail:ping": "tsx --env-file=.env packages/mail/src/lib/mail-ping.ts",
     "seed": "tsx --env-file=.env packages/db/src/scripts/seed.ts"
   },
   "private": true,
