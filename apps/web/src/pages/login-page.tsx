@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { useNavigate } from "react-router"
+import { useNavigate, Link  } from "react-router"
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
@@ -9,6 +9,7 @@ import { loginSchema, type LoginFormValues } from "@/lib/schemas/auth-schema"
 import { apiClient } from "@/lib/api-client"
 import { useAuthStore } from "@/stores/auth-store"
 import { GoogleAuthButton } from "@/components/google-auth-button"
+
 
 export function LoginPage() {
     const navigate = useNavigate()
@@ -66,6 +67,13 @@ export function LoginPage() {
                 </form>
 
                 <GoogleAuthButton mode="signin" />
+
+                <p className="text-sm text-center text-muted-foreground">
+                    Not registered?{' '}
+                    <Link to="/register" className="underline text-foreground">
+                        Create an account
+                    </Link>
+                </p>
             </div>
         </div>
     )

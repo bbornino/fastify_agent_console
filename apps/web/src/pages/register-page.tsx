@@ -1,6 +1,6 @@
 import { useState } from "react"
 import axios from "axios"
-import { useNavigate } from "react-router"
+import { useNavigate,  Link } from "react-router"
 import { useForm } from "react-hook-form"
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from "@/components/ui/button"
@@ -78,6 +78,13 @@ export function RegisterPage() {
                 </form>
 
                 <GoogleAuthButton mode="signup" />
+
+                <p className="text-sm text-center text-muted-foreground">
+                    Already have an account?{' '}
+                    <Link to="/login" className="underline text-foreground">
+                        Log in
+                    </Link>
+                </p>
             </div>
 
         </div>
