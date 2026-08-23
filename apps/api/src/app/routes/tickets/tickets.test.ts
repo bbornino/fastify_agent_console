@@ -122,50 +122,82 @@ describe('Tickets', () => {
   });
 
   describe('PATCH /tickets/:id', () => {
-  it('updates ticket status and sets resolvedAt', async () => {
-    const app = await buildApp();
+    it('updates ticket status and sets resolvedAt', async () => {
+      const app = await buildApp();
 
-    const createResponse = await app.inject({
-      method: 'POST',
-      url: '/tickets',
-      headers: { authorization: `Bearer ${accessToken}` },
-      payload: {
-        subject: `${TEST_SUBJECT} - patch test`,
-        description: 'Test description',
-        customerEmail: 'customer@example.com',
-        customerName: 'Test Customer',
-      },
+      const createResponse = await app.inject({
+        method: 'POST',
+        url: '/tickets',
+        headers: { authorization: `Bearer ${accessToken}` },
+        payload: {
+          subject: `${TEST_SUBJECT} - patch test`,
+          description: 'Test description',
+          customerEmail: 'customer@example.com',
+          customerName: 'Test Customer',
+        },
+      });
+      const { id } = JSON.parse(createResponse.body);
+
+      const patchResponse = await app.inject({
+        method: 'PATCH',
+        url: `/tickets/${id}`,
+        headers: { authorization: `Bearer ${accessToken}` },
+        payload: { status: 'resolved' },
+      });
+
+      expect(patchResponse.statusCode).toBe(200);
+      expect(patchResponse.body).not.toBe('');
+      const body = JSON.parse(patchResponse.body);
+      expect(body.id).toBe(id);
+      expect(body.status).toBe('resolved');
+      expect(body.resolvedAt).not.toBeNull();
+
+      await app.close();
     });
-    const { id } = JSON.parse(createResponse.body);
 
-    const patchResponse = await app.inject({
-      method: 'PATCH',
-      url: `/tickets/${id}`,
-      headers: { authorization: `Bearer ${accessToken}` },
-      payload: { status: 'resolved' },
+    it('updates status without an assignment change and still returns the updated ticket', async () => {
+      const app = await buildApp();
+
+      const createResponse = await app.inject({
+        method: 'POST',
+        url: '/tickets',
+        headers: { authorization: `Bearer ${accessToken}` },
+        payload: {
+          subject: `${TEST_SUBJECT} - status only`,
+          description: 'Test description',
+          customerEmail: 'customer@example.com',
+          customerName: 'Test Customer',
+        },
+      });
+      const { id } = JSON.parse(createResponse.body);
+
+      const patchResponse = await app.inject({
+        method: 'PATCH',
+        url: `/tickets/${id}`,
+        headers: { authorization: `Bearer ${accessToken}` },
+        payload: { priority: 'urgent' },
+      });
+
+      expect(patchResponse.statusCode).toBe(200);
+      const body = JSON.parse(patchResponse.body);
+      expect(body.priority).toBe('urgent');
+
+      await app.close();
     });
 
-    expect(patchResponse.statusCode).toBe(200);
-    const body = JSON.parse(patchResponse.body);
-    expect(body.status).toBe('resolved');
-    expect(body.resolvedAt).not.toBeNull();
+    it('returns 404 for a nonexistent ticket', async () => {
+      const app = await buildApp();
 
-    await app.close();
+      const response = await app.inject({
+        method: 'PATCH',
+        url: '/tickets/999999',
+        headers: { authorization: `Bearer ${accessToken}` },
+        payload: { status: 'resolved' },
+      });
+
+      expect(response.statusCode).toBe(404);
+
+      await app.close();
+    });
   });
-
-  it('returns 404 for a nonexistent ticket', async () => {
-    const app = await buildApp();
-
-    const response = await app.inject({
-      method: 'PATCH',
-      url: '/tickets/999999',
-      headers: { authorization: `Bearer ${accessToken}` },
-      payload: { status: 'resolved' },
-    });
-
-    expect(response.statusCode).toBe(404);
-
-    await app.close();
-  });
-});
 });
