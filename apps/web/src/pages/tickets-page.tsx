@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { apiClient } from '@/lib/api-client'
+import { useAuthStore } from '@/stores/auth-store'
 
 interface Ticket {
     id: number;
@@ -15,13 +16,30 @@ interface Ticket {
 export function TicketsPage() {
     const [tickets, setTickets] = useState<Ticket[]>([])
     const [loading, setLoading] = useState(true)
+    const accessToken = useAuthStore((state) => state.accessToken)
+
+    const fetchTickets = () => {
+        apiClient.get('/tickets').then((res) => setTickets(res.data))
+    }
 
     useEffect(() => {
-        apiClient
-            .get('/tickets')
-            .then((res) => setTickets(res.data))
-            .finally(() => setLoading(false))
+        fetchTickets()
+        setLoading(false)
     }, [])
+
+    useEffect(() => {
+        if (!accessToken) return
+
+        const eventSource = new EventSource(`/api/tickets/events?token=${accessToken}`)
+
+        eventSource.onmessage = () => {
+            fetchTickets()
+        }
+
+        return () => {
+            eventSource.close()
+        }
+    }, [accessToken])
 
     if (loading) return <div className='p-4'>Loading Tickets...</div>
 
