@@ -8,6 +8,7 @@ import registerRoute from '../auth/register';
 import createRoute from './create';
 import listRoute from './list';
 import updateRoute from './update';
+import getOneRoute from './get-one';
 
 async function buildApp() {
   const app = Fastify();
@@ -17,6 +18,7 @@ async function buildApp() {
   await app.register(createRoute, { prefix: '/tickets' });
   await app.register(listRoute, { prefix: '/tickets' });
   await app.register(updateRoute, { prefix: '/tickets' });
+  await app.register(getOneRoute, { prefix: '/tickets'})
   await app.ready();
   return app;
 }
@@ -174,6 +176,65 @@ describe('Tickets', () => {
 
       expect(overlap.length).toBe(0);
       expect(Math.max(...secondIds)).toBeLessThan(Math.min(...firstIds));
+
+      await app.close();
+    });
+  });
+
+  describe('GET /tickets/:id', () => {
+    it('returns a single ticket by id', async () => {
+      const app = await buildApp();
+
+      const createResponse = await app.inject({
+        method: 'POST',
+        url: '/tickets',
+        headers: { authorization: `Bearer ${accessToken}` },
+        payload: {
+          subject: `${TEST_SUBJECT} - get one`,
+          description: 'Test description',
+          customerEmail: 'customer@example.com',
+          customerName: 'Test Customer',
+        },
+      });
+      const { id } = JSON.parse(createResponse.body);
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/tickets/${id}`,
+        headers: { authorization: `Bearer ${accessToken}` },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body);
+      expect(body.id).toBe(id);
+      expect(body.subject).toBe(`${TEST_SUBJECT} - get one`);
+
+      await app.close();
+    });
+
+    it('returns 404 for a nonexistent ticket', async () => {
+      const app = await buildApp();
+
+      const response = await app.inject({
+        method: 'GET',
+        url: '/tickets/999999',
+        headers: { authorization: `Bearer ${accessToken}` },
+      });
+
+      expect(response.statusCode).toBe(404);
+
+      await app.close();
+    });
+
+    it('rejects a request with no auth token', async () => {
+      const app = await buildApp();
+
+      const response = await app.inject({
+        method: 'GET',
+        url: '/tickets/1',
+      });
+
+      expect(response.statusCode).toBe(401);
 
       await app.close();
     });
