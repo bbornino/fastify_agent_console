@@ -1,4 +1,4 @@
-import { mailTransport } from './mail-client.ts';
+import { mailTransport } from './mail-client';
 
 async function ping() {
   try {

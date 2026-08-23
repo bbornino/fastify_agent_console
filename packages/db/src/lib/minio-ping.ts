@@ -1,4 +1,4 @@
-import { minioClient } from './minio-client.ts'
+import { minioClient } from './minio-client'
 
 async function ping() {
     try {

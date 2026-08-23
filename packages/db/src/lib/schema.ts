@@ -1,4 +1,5 @@
 import { pgTable, serial, varchar, text, boolean, timestamp, pgEnum, integer, } from 'drizzle-orm/pg-core'
+import { TICKET_STATUSES, TICKET_PRIORITIES } from './constants'
 
 export const userRoleEnum = pgEnum('user_role', ['agent', 'admin'])
 
@@ -25,13 +26,8 @@ export const refreshTokens = pgTable('refresh_tokens', {
     createdAt: timestamp('created_at', {withTimezone: true}).notNull().defaultNow(),
 })
 
-export const ticketStatusEnum = pgEnum('ticket_status', [
-    'new', 'open', 'pending', 'resolved', 'closed'
-])
-
-export const ticketPriorityEnum = pgEnum('ticket_priority', [
-    'low', 'medium', 'high', 'urgent'
-])
+export const ticketStatusEnum = pgEnum('ticket_status', TICKET_STATUSES)
+export const ticketPriorityEnum = pgEnum('ticket_priority', TICKET_PRIORITIES)
 
 export const tickets = pgTable('tickets', {
     id: serial('id').primaryKey(),
