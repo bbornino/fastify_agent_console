@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { apiClient } from '@/lib/api-client'
 import { useAuthStore } from '@/stores/auth-store'
+import { Button } from '@/components/ui/button'
 
 interface Ticket {
     id: number;
@@ -13,17 +14,38 @@ interface Ticket {
     careatedAt: string;
 }
 
+interface TicketsResponse {
+    tickets: Ticket[];
+    nextCursor: number | null;
+}
+
 export function TicketsPage() {
     const [tickets, setTickets] = useState<Ticket[]>([])
+    const [cursor, setCursor] = useState<number | null>(null)
     const [loading, setLoading] = useState(true)
+    const [loadingMore, setLoadingMore] = useState(false)
     const accessToken = useAuthStore((state) => state.accessToken)
 
-    const fetchTickets = () => {
-        apiClient.get('/tickets').then((res) => setTickets(res.data))
+    const fetchFirstPage = () => {
+        apiClient.get<TicketsResponse>('/tickets').then((res) => {
+            setTickets(res.data.tickets)
+            setCursor(res.data.nextCursor)
+        })
     }
 
+    const loadMore = async () => {
+        if (cursor === null) return
+        setLoadingMore(true)
+        try {
+            const res = await apiClient.get<TicketsResponse>(`/tickets?cursor=${cursor}`)
+            setTickets((prev) => [...prev, ...res.data.tickets])
+            setCursor(res.data.nextCursor)
+        } finally {
+            setLoadingMore(false)
+        }
+    }
     useEffect(() => {
-        fetchTickets()
+        fetchFirstPage()
         setLoading(false)
     }, [])
 
@@ -33,7 +55,7 @@ export function TicketsPage() {
         const eventSource = new EventSource(`/api/tickets/events?token=${accessToken}`)
 
         eventSource.onmessage = () => {
-            fetchTickets()
+            fetchFirstPage()
         }
 
         return () => {
@@ -62,6 +84,12 @@ export function TicketsPage() {
                     </div>
                 ))}
             </div>
+
+            {cursor !== null && (
+                <Button onClick={loadMore} disabled={loadingMore} variant="outline" className='w-full'>
+                    {loadingMore ? 'Loading...' : 'Load more'}
+                </Button>
+            )}
         </div>
     )
 }
