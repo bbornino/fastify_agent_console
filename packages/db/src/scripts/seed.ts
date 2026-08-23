@@ -80,6 +80,45 @@ async function seed() {
         created++
     }
 
+    console.log('Seeding a large batch of tickets for pagination testing...');
+
+    const BULK_COUNT = 25000;
+    const BATCH_SIZE = 500;
+    let bulkCreated = 0;
+
+    for (let batchStart = 0; batchStart < BULK_COUNT; batchStart += BATCH_SIZE) {
+        const batch = [];
+        const batchEnd = Math.min(batchStart + BATCH_SIZE, BULK_COUNT);
+
+        for (let i = batchStart; i < batchEnd; i++) {
+            const subject = `${randomFrom(ticketSubjects)} (#bulk-${i + 1})`;
+            const status = randomFrom(TICKET_STATUSES);
+            const isResolved = status === 'resolved' || status === 'closed';
+
+            batch.push({
+            subject,
+            description: `Bulk seed ticket for pagination testing.`,
+            status,
+            priority: randomFrom(TICKET_PRIORITIES),
+            customerEmail: `bulkcustomer${i}@example.com`,
+            customerName: randomFrom(CUSTOMER_NAMES),
+            assignedAgentId: Math.random() > 0.2 ? randomFrom(agentIds) : null,
+            category: randomFrom(TICKET_CATEGORIES) ?? undefined,
+            isEscalated: Math.random() > 0.85,
+            resolvedAt: isResolved ? new Date() : undefined,
+            updatedAt: new Date(),
+            });
+        }
+
+        await db.insert(tickets).values(batch);
+        bulkCreated += batch.length;
+
+        if (bulkCreated % 5000 === 0) {
+            console.log(`  ...${bulkCreated} bulk tickets inserted`);
+        }
+    }
+
+    console.log(`Created ${bulkCreated} bulk tickets`);
     console.log(`Created ${created} tickets`)
     console.log('Seed Complete.')
     process.exit(0)

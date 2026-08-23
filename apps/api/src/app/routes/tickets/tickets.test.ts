@@ -103,7 +103,7 @@ describe('Tickets', () => {
   });
 
   describe('GET /tickets', () => {
-    it('returns a list including the ticket we created', async () => {
+    it('returns a paginated response shape', async () => {
       const app = await buildApp();
 
       const response = await app.inject({
@@ -114,8 +114,66 @@ describe('Tickets', () => {
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body);
-      expect(Array.isArray(body)).toBe(true);
-      expect(body.some((t: { subject: string }) => t.subject === TEST_SUBJECT)).toBe(true);
+      expect(Array.isArray(body.tickets)).toBe(true);
+      expect(body.tickets.length).toBeLessThanOrEqual(25);
+      expect(body).toHaveProperty('nextCursor');
+
+      await app.close();
+    });
+
+    it('finds a specific ticket by filtering status and paging until found, or fetching directly', async () => {
+      const app = await buildApp();
+
+      const createResponse = await app.inject({
+        method: 'POST',
+        url: '/tickets',
+        headers: { authorization: `Bearer ${accessToken}` },
+        payload: {
+          subject: `${TEST_SUBJECT} - findable`,
+          description: 'Test description',
+          customerEmail: 'customer@example.com',
+          customerName: 'Test Customer',
+        },
+      });
+      const { id } = JSON.parse(createResponse.body);
+
+      // Since this ticket was just created, it has the highest id — it must be on page 1
+      const response = await app.inject({
+        method: 'GET',
+        url: '/tickets',
+        headers: { authorization: `Bearer ${accessToken}` },
+      });
+
+      const body = JSON.parse(response.body);
+      expect(body.tickets.some((t: { id: number }) => t.id === id)).toBe(true);
+
+      await app.close();
+    });
+
+    it('respects the cursor to fetch the next page', async () => {
+      const app = await buildApp();
+
+      const firstPage = await app.inject({
+        method: 'GET',
+        url: '/tickets',
+        headers: { authorization: `Bearer ${accessToken}` },
+      });
+      const firstBody = JSON.parse(firstPage.body);
+      expect(firstBody.nextCursor).not.toBeNull();
+
+      const secondPage = await app.inject({
+        method: 'GET',
+        url: `/tickets?cursor=${firstBody.nextCursor}`,
+        headers: { authorization: `Bearer ${accessToken}` },
+      });
+      const secondBody = JSON.parse(secondPage.body);
+
+      const firstIds = firstBody.tickets.map((t: { id: number }) => t.id);
+      const secondIds = secondBody.tickets.map((t: { id: number }) => t.id);
+      const overlap = firstIds.filter((id: number) => secondIds.includes(id));
+
+      expect(overlap.length).toBe(0);
+      expect(Math.max(...secondIds)).toBeLessThan(Math.min(...firstIds));
 
       await app.close();
     });
