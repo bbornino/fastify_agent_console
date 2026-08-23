@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify"
 import { db, tickets } from '@fastify-agent-console/db'
+import { broadcastTicketEvent } from "../../lib/ticket-events"
 
 export default async function (fastify: FastifyInstance) {
     fastify.post<{
@@ -25,6 +26,7 @@ export default async function (fastify: FastifyInstance) {
                 })
                 .returning();
 
+            broadcastTicketEvent({ type: 'created', ticketId: ticket.id })
             reply.code(201).send(ticket);
         }
     )

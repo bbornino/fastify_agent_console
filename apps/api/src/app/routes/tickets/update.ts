@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify"
 import { eq } from 'drizzle-orm'
 import { db, tickets, users } from "@fastify-agent-console/db"
 import { sendTicketAssignedEmail, sendTicketResolvedEmail } from '@fastify-agent-console/mail'
+import { broadcastTicketEvent } from "../../lib/ticket-events"
 
 export default async function (fastify: FastifyInstance) {
     fastify.patch<{
@@ -79,9 +80,9 @@ export default async function (fastify: FastifyInstance) {
                 }).catch((err) => fastify.log.error(err, 'Failed to send ticket-resolved email'))
             }
 
+            broadcastTicketEvent({ type: 'updated', ticketId: updated.id })
             reply.send(updated)
 
-            
         }
     )
 }
