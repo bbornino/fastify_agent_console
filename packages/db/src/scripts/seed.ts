@@ -40,6 +40,21 @@ async function seed() {
     }
 
     console.log(`Created ${agentIds.length} agents (password: agentpass123)`)
+
+    console.log('Seeding test account...');
+
+    const testPasswordHash = await bcrypt.hash('testpass123', 10);
+
+    await db.insert(users).values({
+    email: 'test@example.com',
+    passwordHash: testPasswordHash,
+    name: 'Test User',
+    role: 'agent',
+    updatedAt: new Date(),
+    });
+
+    console.log('Created test@example.com (password: testpass123)');
+
     console.log('Seeding tickets...')
 
     const ticketSubjects = [
