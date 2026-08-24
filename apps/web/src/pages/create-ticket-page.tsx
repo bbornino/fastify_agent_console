@@ -12,7 +12,7 @@ export function CreateTicketPage() {
         setServerError(null)
         try {
             const response = await apiClient.post('/tickets', data)
-            navigate('/tickets')
+            navigate(`/tickets/${response.data.id}`)
         } catch {
             setServerError('Something went wrong.  Please try again.')
         }
