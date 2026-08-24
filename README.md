@@ -39,7 +39,7 @@ An internal agent console for a support ticketing platform. Agents sign in, view
 - **Authentication** — email/password registration and login, Google OAuth (with automatic account linking by email), full JWT refresh-token rotation, httpOnly cookies, and sessions that survive a page reload
 - **Ticket management** — create, list, view, and update tickets, with status, priority, category, and agent assignment
 - **Cursor-based pagination** — tickets load 25 at a time via a "Load more" button, tested against a 25,000+ row seeded dataset
-- **File attachments** — agents can upload files to a ticket and download them back, stored in MinIO
+- **File attachments** — agents can upload files to a ticket, view the list of what's attached, download any of them back, and delete ones that no longer belong, all stored in MinIO
 - **Transactional email** — agents receive an email when a ticket is assigned to them; customers receive an email when their ticket is resolved
 - **Live updates** — the ticket list updates in real time via Server-Sent Events whenever any ticket is created or changed, without a page refresh
 - **Observability** — Prometheus scrapes live request metrics from the API; a Grafana dashboard visualizes request rate
@@ -63,7 +63,7 @@ docker compose up -d
 This starts Postgres, Redis, MinIO, MailHog, Prometheus, and Grafana.
 
 ### 3. Configure environment variables
-Copy `.env.example` to `.env` (if provided) or create `.env` at the repo root with your own database, Redis, MinIO, SMTP, and Google OAuth credentials. See `apps/api/src/app/constants.ts` and the plugin files under `apps/api/src/app/plugins/` for the variables each service expects.
+Copy `.env.example` to `.env` and fill in real values. This includes database, Redis, MinIO (both the app's connection details and the MinIO container's own admin credentials, `MINIO_ROOT_USER` / `MINIO_ROOT_PASSWORD`, which Docker Compose reads directly from `.env`), SMTP, and Google OAuth credentials. See `apps/api/src/app/constants.ts` and the plugin files under `apps/api/src/app/plugins/` for how each variable is used.
 
 ### 4. Push the database schema
 ```powershell
