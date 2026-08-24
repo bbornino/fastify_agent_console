@@ -104,6 +104,15 @@ export function TicketDetailPage() {
             })
     }
 
+    const handleDelete = async (attachmentId: number) => {
+        try {
+            await apiClient.delete(`/attachments/${attachmentId}`)
+            fetchAttachments()
+        } catch {
+            setServerError('Failed to delete attachment.  Please try again.')
+        }
+    }
+
     if (loading) return <div className="p-4">Loading ticket...</div>
     if (!ticket) return <div className="p-4">Ticket not found.</div>
 
@@ -153,6 +162,13 @@ export function TicketDetailPage() {
                                 onClick={() => handleDownload(attachment.id, attachment.fileName)}
                             >
                                 Download
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDelete(attachment.id)}
+                            >
+                                Delete
                             </Button>
                         </li>
                     ))}
