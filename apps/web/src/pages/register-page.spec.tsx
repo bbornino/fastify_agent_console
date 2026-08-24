@@ -2,7 +2,19 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router';
 import { RegisterPage } from './register-page';
-import { mockApiClient } from '@/test-utils/mock-api-client';
+
+const { mockApiClient } = vi.hoisted(() => ({
+  mockApiClient: {
+    get: vi.fn(),
+    post: vi.fn(),
+    patch: vi.fn(),
+    delete: vi.fn(),
+  },
+}));
+
+vi.mock('@/lib/api-client', () => ({
+  apiClient: mockApiClient,
+}));
 
 describe('RegisterPage', () => {
   beforeEach(() => {
