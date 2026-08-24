@@ -10,6 +10,8 @@ import registerRoute from '../auth/register';
 import createTicketRoute from './create';
 import uploadRoute from './upload';
 import downloadRoute from '../attachments/download';
+import listAttachmentsRoute from './list-attachments';
+import deleteRoute from '../attachments/delete'
 
 async function buildApp() {
   const app = Fastify();
@@ -20,6 +22,8 @@ async function buildApp() {
   await app.register(createTicketRoute, { prefix: '/tickets' });
   await app.register(uploadRoute, { prefix: '/tickets' });
   await app.register(downloadRoute, { prefix: '/attachments' });
+  await app.register(listAttachmentsRoute, {prefix: '/tickets'});
+  await app.register(deleteRoute, {prefix: '/attachments'})
   await app.ready();
   return app;
 }
@@ -36,7 +40,9 @@ async function cleanupTestData() {
   if (ticket) {
     const attachmentRows = await db.select().from(attachments).where(eq(attachments.ticketId, ticket.id));
     for (const attachment of attachmentRows) {
-      await minioClient.removeObject(BUCKET, attachment.fileKey).catch(() => {});
+      await minioClient.removeObject(BUCKET, attachment.fileKey).catch(() => {
+        // ignore - file may already be gone
+      });
     }
     await db.delete(attachments).where(eq(attachments.ticketId, ticket.id));
     await db.delete(tickets).where(eq(tickets.id, ticket.id));
@@ -151,6 +157,78 @@ describe('Ticket attachments', () => {
     });
 
     expect(response.statusCode).toBe(404);
+
+    await app.close();
+  });
+
+  it('lists attachments for a ticket', async () => {
+    const app = await buildApp();
+
+    const form = new FormData();
+    form.append('file', Buffer.from('list test contents'), {
+      filename: 'list-test.txt',
+      contentType: 'text/plain',
+    });
+
+    await app.inject({
+      method: 'POST',
+      url: `/tickets/${ticketId}/attachments`,
+      headers: {
+        authorization: `Bearer ${accessToken}`,
+        ...form.getHeaders(),
+      },
+      payload: form.getBuffer(),
+    });
+
+    const response = await app.inject({
+      method: 'GET',
+      url: `/tickets/${ticketId}/attachments`,
+      headers: { authorization: `Bearer ${accessToken}` },
+    });
+
+    expect(response.statusCode).toBe(200);
+    const body = JSON.parse(response.body);
+    expect(Array.isArray(body)).toBe(true);
+    expect(body.some((a: { fileName: string }) => a.fileName === 'list-test.txt')).toBe(true);
+
+    await app.close();
+  });
+
+  it('deletes an attachment', async () => {
+    const app = await buildApp();
+
+    const form = new FormData();
+    form.append('file', Buffer.from('delete test contents'), {
+      filename: 'delete-test.txt',
+      contentType: 'text/plain',
+    });
+
+    const uploadResponse = await app.inject({
+      method: 'POST',
+      url: `/tickets/${ticketId}/attachments`,
+      headers: {
+        authorization: `Bearer ${accessToken}`,
+        ...form.getHeaders(),
+      },
+      payload: form.getBuffer(),
+    });
+    const { id: attachmentId } = JSON.parse(uploadResponse.body);
+
+    const deleteResponse = await app.inject({
+      method: 'DELETE',
+      url: `/attachments/${attachmentId}`,
+      headers: { authorization: `Bearer ${accessToken}` },
+    });
+
+    expect(deleteResponse.statusCode).toBe(204);
+
+    const listResponse = await app.inject({
+      method: 'GET',
+      url: `/tickets/${ticketId}/attachments`,
+      headers: { authorization: `Bearer ${accessToken}` },
+    });
+    const remaining = JSON.parse(listResponse.body);
+    expect(remaining.some((a: { id: number }) => a.id === attachmentId)).toBe(false);
 
     await app.close();
   });
