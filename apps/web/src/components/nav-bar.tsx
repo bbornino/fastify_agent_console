@@ -5,6 +5,7 @@ import { useAuthStore } from "@/stores/auth-store"
 const NAV_LINKS = [
     { to: '/', label: 'Home'},
     { to: '/tickets', label: 'Tickets'},
+    { to: '/tickets/new', label: 'New Ticket'},
 ]
 
 export function NavBar() {

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router'
 import { apiClient } from '@/lib/api-client'
 import { useAuthStore } from '@/stores/auth-store'
 import { Button } from '@/components/ui/button'
@@ -70,18 +71,20 @@ export function TicketsPage() {
             <h1 className='text-2xl font-bold'>Tickets</h1>
             <div className='space-y-2'>
                 {tickets.map((ticket) => (
-                    <div key={ticket.id} className='border rounded-md p-3'>
-                        <div className='flex justify-between items-start'>
-                            <h2 className='font-semibold'>{ticket.subject}</h2>
-                            <span className='text-xs uppercase text-muted-foreground'>
-                                {ticket.status} · {ticket.priority}
-                            </span>
+                    <Link key={ticket.id} to={`/tickets/${ticket.id}`} className='block'>
+                        <div className='border rounded-md p-3'>
+                            <div className='flex justify-between items-start'>
+                                <h2 className='font-semibold'>{ticket.subject}</h2>
+                                <span className='text-xs uppercase text-muted-foreground'>
+                                    {ticket.status} · {ticket.priority}
+                                </span>
+                            </div>
+                            <p className='text-sm text-muted-foreground'>{ticket.description}</p>
+                            <p className='text-xs text-muted-foreground mt-1'>
+                                {ticket.customerName} ({ticket.customerEmail})
+                            </p>
                         </div>
-                        <p className='text-sm text-muted-foreground'>{ticket.description}</p>
-                        <p className='text-xs text-muted-foreground mt-1'>
-                            {ticket.customerName} ({ticket.customerEmail})
-                        </p>
-                    </div>
+                    </Link>
                 ))}
             </div>
 

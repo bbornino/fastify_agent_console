@@ -7,6 +7,8 @@ import { AuthCallbackPage} from '../pages/auth-callback-page'
 import { HomePage } from '../pages/home-page'
 import { ProtectedRoute } from '../components/protected-route'
 import { TicketsPage } from '@/pages/tickets-page'
+import { CreateTicketPage } from '@/pages/create-ticket-page'
+import { TicketDetailPage } from '@/pages/ticket-detail-page'
 
 export function App() {
   return (
@@ -17,6 +19,8 @@ export function App() {
       <Route element={<ProtectedRoute />}>
         <Route path="/" element={<HomePage />} />
         <Route path="/tickets" element={<TicketsPage />} />
+        <Route path="/tickets/new" element={<CreateTicketPage />} />
+        <Route path='/tickets/:ticketId' element={<TicketDetailPage />} />
       </Route>
     </Routes>
   );

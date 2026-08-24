@@ -17,6 +17,8 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --radius-md: calc(var(--radius) - 2px);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
 }
 
 :root {
@@ -36,4 +38,6 @@
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
 }
