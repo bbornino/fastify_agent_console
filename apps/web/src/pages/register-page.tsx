@@ -43,7 +43,7 @@ export function RegisterPage() {
     return (
         <div className="flex min-h-screen items-center justify-center">
             <div className="w-full max-w-sm space-y-4 p-6">
-                <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-sm space-y-4 p-6">
+                <form onSubmit={handleSubmit(onSubmit)} className="w-full max-w-sm space-y-4 p-6" noValidate>
                     <h1 className="text-2xl font-bold">Create an account</h1>
 
                     <div className="space-y-1">
