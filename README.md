@@ -1,96 +1,117 @@
-# FastifyAgentConsole
+# Fastify Agent Console
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+An internal agent console for a support ticketing platform. Agents sign in, view and manage tickets, upload attachments, and see updates from other agents live as they happen. Built as the second app in the Fastify block of a nine-app Node.js/TypeScript framework learning series.
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
+## Tech Stack
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/getting-started/intro#learn-nx?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+**Backend**
+- Fastify (Node.js/TypeScript)
+- Drizzle ORM + PostgreSQL 16
+- Redis
+- MinIO (S3-compatible object storage) for file attachments
+- MailHog (local SMTP catcher) + Nodemailer for transactional email
+- Server-Sent Events (SSE) for live ticket updates
+- Prometheus + Grafana for metrics and dashboards
+- JWT access tokens + httpOnly refresh-token cookies, with token rotation on every refresh
+- Google OAuth alongside email/password authentication
+- Vitest for backend testing (35 tests)
 
-## Run tasks
+**Frontend**
+- React 19 + Vite
+- Tailwind CSS v4 + shadcn/ui (Radix primitives)
+- Zustand for client state
+- Axios with request/response interceptors for silent token refresh
+- React Hook Form + Zod for form validation, sharing validation schemas with the backend where practical
+- React Router v7 (declarative mode)
+- Vitest + Testing Library for frontend testing (22 tests)
 
-To run tasks with Nx use:
+**Infrastructure**
+- NX monorepo (single root `package.json`)
+- pnpm package manager
+- Docker Compose for all backing services (Postgres, Redis, MinIO, MailHog, Prometheus, Grafana)
 
-```sh
-npx nx <target> <project-name>
+## Links
+
+- [GitHub Repository](https://github.com/bbornino/fastify_agent_console)
+
+## Features Implemented
+
+- **Authentication** — email/password registration and login, Google OAuth (with automatic account linking by email), full JWT refresh-token rotation, httpOnly cookies, and sessions that survive a page reload
+- **Ticket management** — create, list, view, and update tickets, with status, priority, category, and agent assignment
+- **Cursor-based pagination** — tickets load 25 at a time via a "Load more" button, tested against a 25,000+ row seeded dataset
+- **File attachments** — agents can upload files to a ticket and download them back, stored in MinIO
+- **Transactional email** — agents receive an email when a ticket is assigned to them; customers receive an email when their ticket is resolved
+- **Live updates** — the ticket list updates in real time via Server-Sent Events whenever any ticket is created or changed, without a page refresh
+- **Observability** — Prometheus scrapes live request metrics from the API; a Grafana dashboard visualizes request rate
+
+## Setup / Installation
+
+### Prerequisites
+- Node.js 24 (via nvm-windows or equivalent)
+- pnpm
+- Docker Desktop
+
+### 1. Install dependencies
+```powershell
+pnpm install
 ```
 
-For example:
+### 2. Start backing services
+```powershell
+docker compose up -d
+```
+This starts Postgres, Redis, MinIO, MailHog, Prometheus, and Grafana.
 
-```sh
-npx nx build myproject
+### 3. Configure environment variables
+Copy `.env.example` to `.env` (if provided) or create `.env` at the repo root with your own database, Redis, MinIO, SMTP, and Google OAuth credentials. See `apps/api/src/app/constants.ts` and the plugin files under `apps/api/src/app/plugins/` for the variables each service expects.
+
+### 4. Push the database schema
+```powershell
+node_modules/drizzle-kit/bin.cjs push
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+### 5. Seed the database
+```powershell
+pnpm seed
+```
+This creates three sample agent accounts, a `test@example.com` account (password: `testpass123`), and 25,000+ sample tickets for realistic pagination testing.
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+### 6. Run the app
+In two separate terminals:
+```powershell
+pnpm exec nx serve api
+pnpm exec nx serve web
+```
+The frontend is available at `http://localhost:4200`, proxying all `/api/*` requests to the backend on port 3000.
 
-## Add new projects
-
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
-
-To install a new plugin you can use the `nx add` command. Here's an example of adding the React plugin:
-```sh
-npx nx add @nx/react
+### Health checks
+```powershell
+pnpm health        # is the API server up?
+pnpm db:ping        # is Postgres reachable?
+pnpm redis:ping     # is Redis reachable?
+pnpm minio:ping     # is MinIO reachable?
+pnpm mail:ping      # is MailHog reachable?
 ```
 
-Use the plugin's generator to create new projects. For example, to create a new React app or library:
+## Running Tests
 
-```sh
-# Generate an app
-npx nx g @nx/react:app demo
-
-# Generate a library
-npx nx g @nx/react:lib some-lib
+**Backend (35 tests):**
+```powershell
+pnpm exec nx test api
 ```
 
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
-
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Set up CI!
-
-### Step 1
-
-To connect to Nx Cloud, run the following command:
-
-```sh
-npx nx connect
+**Frontend (22 tests):**
+```powershell
+pnpm exec nx test web
 ```
 
-Connecting to Nx Cloud ensures a [fast and scalable CI](https://nx.dev/ci/intro/why-nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
+## Local Service URLs
 
-- [Remote caching](https://nx.dev/ci/features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/ci/features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/ci/features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/ci/features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-### Step 2
-
-Use the following command to configure a CI workflow for your workspace:
-
-```sh
-npx nx g ci-workflow
-```
-
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Install Nx Console
-
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
-
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Useful links
-
-Learn more:
-
-- [Learn more about this workspace setup](https://nx.dev/getting-started/intro#learn-nx?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+| Service | URL |
+|---|---|
+| Frontend | http://localhost:4200 |
+| API | http://localhost:3000 |
+| MailHog inbox | http://localhost:8026 |
+| MinIO console | http://localhost:9003 |
+| Prometheus | http://localhost:9091 |
+| Grafana | http://localhost:3001 |
